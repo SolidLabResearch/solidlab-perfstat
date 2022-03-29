@@ -99,7 +99,11 @@ class Result:
         with requests.Session() as session:
             get_result_resp = session.get(result_post_endpoint)
             get_result_resp.raise_for_status()
-            result_id = get_result_resp.json()["result_id"]
+            resp_json = get_result_resp.json()
+            assert (
+                "test_result_id" in resp_json
+            ), f"test_result_id is not in {resp_json!r}"
+            result_id = resp_json["test_result_id"]
 
             post_attachment(
                 session=session,
