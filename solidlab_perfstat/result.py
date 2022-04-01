@@ -6,7 +6,7 @@ import psutil
 import pygal
 import requests
 
-from solidlab_perfstat.perftest_attach import post_attachment
+from solidlab_perfstat.perftest_attach import upload_attachment, upload_attachment_file
 
 
 class Result:
@@ -83,7 +83,7 @@ class Result:
         for result_file in result_files:
             print(f"Wrote: {result_file}")
 
-    def post_all(self, result_post_endpoint: str):
+    def post_all(self, result_endpoint: str):
         if not self.stats:
             print("No results yet")
             return
@@ -92,12 +92,12 @@ class Result:
         graph_files = self.make_graphs()
         summary_csv = self.make_summary_csv()
 
-        if not result_post_endpoint.endswith("/"):
-            result_post_endpoint += "/"
+        if not result_endpoint.endswith("/"):
+            result_endpoint += "/"
 
         # POST results
         with requests.Session() as session:
-            get_result_resp = session.get(result_post_endpoint)
+            get_result_resp = session.get(result_endpoint)
             get_result_resp.raise_for_status()
             resp_json = get_result_resp.json()
             assert (
@@ -105,36 +105,33 @@ class Result:
             ), f"test_result_id is not in {resp_json!r}"
             result_id = resp_json["test_result_id"]
 
-            post_attachment(
+            upload_attachment(
                 session=session,
-                result_post_endpoint=result_post_endpoint,
-                result_id=result_id,
+                result_endpoint=result_endpoint,
                 attach_type="CSV",
-                subtype="summary",
+                sub_type="summary",
                 description="Summary of all measurements",
                 content=summary_csv.encode(),
+                content_type="text/csv",
             )
-            post_attachment(
+            upload_attachment(
                 session=session,
-                result_post_endpoint=result_post_endpoint,
-                result_id=result_id,
+                result_endpoint=result_endpoint,
                 attach_type="CSV",
-                subtype="detail",
+                sub_type="detail",
                 description="Detailed measurements",
                 content=detail_csv.encode(),
+                content_type="text/csv",
             )
 
             for graph_file in graph_files:
-                with open(graph_file, "rb") as f:
-                    graph_content = f.read()
-                post_attachment(
+                upload_attachment_file(
                     session=session,
-                    result_post_endpoint=result_post_endpoint,
-                    result_id=result_id,
+                    result_endpoint=result_endpoint,
                     attach_type="GRAPH",
-                    subtype=basename(graph_file),
-                    description="TODO " + basename(graph_file),
-                    content=graph_content,
+                    sub_type=basename(graph_file),
+                    description="Graph " + basename(graph_file),
+                    filename=graph_file,
                 )
 
     def make_detail_csv(self) -> str:
