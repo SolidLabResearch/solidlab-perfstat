@@ -13,12 +13,19 @@ logger.setLevel(logging.DEBUG)
 
 def main() -> int:
     show_help = True
-    result_post_endpoint = None
+    result_endpoint = None
     if len(sys.argv) == 2:
-        result_post_endpoint = sys.argv[1].strip()
-        show_help = not result_post_endpoint.startswith("http")
+        result_endpoint = sys.argv[1].strip()
+        show_help = not result_endpoint.startswith("http")
+        assert result_endpoint.startswith("http")
+        assert "/result/" in result_endpoint
+        assert not result_endpoint.endswith("/")
+        assert not result_endpoint.endswith("result/")
+        assert not result_endpoint.endswith("result")
+        assert not result_endpoint.endswith("attachment")
+        assert not result_endpoint.endswith("attachment/")
     elif len(sys.argv) == 1:
-        result_post_endpoint = None
+        result_endpoint = None
         show_help = False
     if show_help:
         print("Usage: interval-system-monitor [<result_post_endpoint>]")
@@ -41,10 +48,10 @@ def main() -> int:
         sleep(1.0)
         result.add()
 
-    if not result_post_endpoint:
+    if not result_endpoint:
         result.make_all()
     else:
-        result.post_all(result_post_endpoint)
+        result.post_all(result_endpoint)
 
     return 0
 

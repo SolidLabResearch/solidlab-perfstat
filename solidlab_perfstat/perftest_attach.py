@@ -64,6 +64,7 @@ def upload_attachment(
     :return:
     """
     assert result_endpoint.startswith("http")
+    assert "/result/" in result_endpoint
     assert not result_endpoint.endswith("/")
     assert not result_endpoint.endswith("result/")
     assert not result_endpoint.endswith("result")
