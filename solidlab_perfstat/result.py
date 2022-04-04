@@ -92,9 +92,6 @@ class Result:
         graph_files = self.make_graphs()
         summary_csv = self.make_summary_csv()
 
-        if not result_endpoint.endswith("/"):
-            result_endpoint += "/"
-
         # POST results
         with requests.Session() as session:
             upload_attachment(
