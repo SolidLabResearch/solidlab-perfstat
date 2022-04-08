@@ -38,10 +38,11 @@ def main() -> int:
 
     # noinspection PyUnusedLocal
     def signal_handler(sig, frame):
-        print("SIGINT received. Will finishing work.")
+        print(f"{signal.Signals(sig).name} received. Will finishing work.")
         result.finish()
 
     signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     result.start()  # forget first values, we can only get relevant values after 1 second.
     while result.running:
