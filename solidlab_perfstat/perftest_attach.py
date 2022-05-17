@@ -11,7 +11,7 @@ from urllib3 import Timeout
 #
 
 
-def upload_attachment_file(
+def upload_artifact_file(
     session,
     *,
     perftest_endpoint: str,
@@ -31,7 +31,7 @@ def upload_attachment_file(
     with open(filename, "rb") as f:
         content = f.read()
 
-        return upload_attachment(
+        return upload_artifact(
             session,
             perftest_endpoint=perftest_endpoint,
             attach_type=attach_type,
@@ -42,7 +42,7 @@ def upload_attachment_file(
         )
 
 
-def upload_attachment(
+def upload_artifact(
     session,
     *,
     perftest_endpoint: str,
@@ -72,18 +72,18 @@ def upload_attachment(
     assert not perftest_endpoint.endswith("artifact/")
 
     post_attach_meta_resp = session.post(
-        f"{perftest_endpoint}/attachment",
+        f"{perftest_endpoint}/artifact",
         params={},
         headers={
             "Content-Type": content_type,
-            "X-Solidlab-Attachment-Type": attach_type,
-            "X-Solidlab-Attachment-Subtype": sub_type,
-            "X-Solidlab-Attachment-Description": description,
+            "X-Solidlab-Artifact-Type": attach_type,
+            "X-Solidlab-Artifact-Subtype": sub_type,
+            "X-Solidlab-Artifact-Description": description,
         },
         timeout=Timeout(connect=2.0, read=3.0),
         data=content,
     )
     post_attach_meta_resp.raise_for_status()
-    attachment_url = post_attach_meta_resp.json()["@id"]
-    attachment_id = post_attach_meta_resp.json()["id"]
-    return attachment_id, attachment_url
+    artifact_url = post_attach_meta_resp.json()["@id"]
+    artifact_id = post_attach_meta_resp.json()["id"]
+    return artifact_id, artifact_url

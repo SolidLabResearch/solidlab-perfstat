@@ -6,7 +6,7 @@ import psutil
 import pygal
 import requests
 
-from solidlab_perfstat.perftest_attach import upload_attachment, upload_attachment_file
+from solidlab_perfstat.perftest_attach import upload_artifact, upload_artifact_file
 
 
 class Measurement:
@@ -94,7 +94,7 @@ class Measurement:
 
         # POST perftest
         with requests.Session() as session:
-            upload_attachment(
+            upload_artifact(
                 session=session,
                 perftest_endpoint=perftest_endpoint,
                 attach_type="CSV",
@@ -103,7 +103,7 @@ class Measurement:
                 content=summary_csv.encode(),
                 content_type="text/csv",
             )
-            upload_attachment(
+            upload_artifact(
                 session=session,
                 perftest_endpoint=perftest_endpoint,
                 attach_type="CSV",
@@ -114,7 +114,7 @@ class Measurement:
             )
 
             for graph_file in graph_files:
-                upload_attachment_file(
+                upload_artifact_file(
                     session=session,
                     perftest_endpoint=perftest_endpoint,
                     attach_type="GRAPH",
