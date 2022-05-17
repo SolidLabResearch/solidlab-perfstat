@@ -9,7 +9,7 @@ import requests
 from solidlab_perfstat.perftest_attach import upload_attachment, upload_attachment_file
 
 
-class Result:
+class Measurement:
     def __init__(self):
         self.running = True
         self.times: List[datetime] = []
@@ -59,44 +59,44 @@ class Result:
 
     def make_all(self):
         if not self.stats:
-            print("No results yet")
+            print("No measurement yet")
             return
 
         detail_csv = self.make_detail_csv()
         summary_csv = self.make_summary_csv()
-        result_files = self.make_graphs()
+        graph_files = self.make_graphs()
 
         # Save to file
         try:
             detail_csv_file = "details.csv"
             with open(detail_csv_file, "w") as f:
                 f.write(detail_csv)
-            result_files.append(detail_csv_file)
+            graph_files.append(detail_csv_file)
 
             summary_csv_file = "summary.csv"
             with open(summary_csv_file, "w") as f:
                 f.write(summary_csv)
-            result_files.append(summary_csv_file)
+            graph_files.append(summary_csv_file)
         except IOError:
             raise
 
-        for result_file in result_files:
-            print(f"Wrote: {result_file}")
+        for graph_file in graph_files:
+            print(f"Wrote: {graph_file}")
 
-    def post_all(self, result_endpoint: str):
+    def post_all(self, perftest_endpoint: str):
         if not self.stats:
-            print("No results yet")
+            print("No measurement yet")
             return
 
         detail_csv = self.make_detail_csv()
         graph_files = self.make_graphs()
         summary_csv = self.make_summary_csv()
 
-        # POST results
+        # POST perftest
         with requests.Session() as session:
             upload_attachment(
                 session=session,
-                result_endpoint=result_endpoint,
+                perftest_endpoint=perftest_endpoint,
                 attach_type="CSV",
                 sub_type="summary",
                 description="Summary of all measurements",
@@ -105,7 +105,7 @@ class Result:
             )
             upload_attachment(
                 session=session,
-                result_endpoint=result_endpoint,
+                perftest_endpoint=perftest_endpoint,
                 attach_type="CSV",
                 sub_type="detail",
                 description="Detailed measurements",
@@ -116,7 +116,7 @@ class Result:
             for graph_file in graph_files:
                 upload_attachment_file(
                     session=session,
-                    result_endpoint=result_endpoint,
+                    perftest_endpoint=perftest_endpoint,
                     attach_type="GRAPH",
                     sub_type=basename(graph_file),
                     description="Graph " + basename(graph_file),

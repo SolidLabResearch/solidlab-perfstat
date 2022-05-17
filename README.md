@@ -23,6 +23,6 @@ If no arguments are given, all data is written to local (`.csv` and `.svg`) file
 
 ### SolidLab: upload
 
-When a [solidlab-perftest-server](link TODO) result endpoint is provided as argument, instead of writing files, the data will be uploaded using the URL.
+When a [solidlab-perftest-server](link TODO) perftest endpoint is provided as argument, instead of writing files, the data will be uploaded using the URL.
 
 (This method depends heavily on the `solidlab-perftest-server` API and is thus not generic in any way.)

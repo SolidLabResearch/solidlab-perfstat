@@ -14,7 +14,7 @@ from urllib3 import Timeout
 def upload_attachment_file(
     session,
     *,
-    result_endpoint: str,
+    perftest_endpoint: str,
     attach_type: str,
     sub_type: str,
     description: str,
@@ -33,7 +33,7 @@ def upload_attachment_file(
 
         return upload_attachment(
             session,
-            result_endpoint=result_endpoint,
+            perftest_endpoint=perftest_endpoint,
             attach_type=attach_type,
             sub_type=sub_type,
             description=description,
@@ -45,7 +45,7 @@ def upload_attachment_file(
 def upload_attachment(
     session,
     *,
-    result_endpoint: str,
+    perftest_endpoint: str,
     attach_type: str,
     sub_type: str,
     description: str,
@@ -55,7 +55,7 @@ def upload_attachment(
     """
 
     :param session:
-    :param result_endpoint:
+    :param perftest_endpoint:
     :param attach_type:
     :param sub_type:
     :param description:
@@ -63,16 +63,16 @@ def upload_attachment(
     :param content:
     :return:
     """
-    assert result_endpoint.startswith("http")
-    assert "/result/" in result_endpoint
-    assert not result_endpoint.endswith("/")
-    assert not result_endpoint.endswith("result/")
-    assert not result_endpoint.endswith("result")
-    assert not result_endpoint.endswith("attachment")
-    assert not result_endpoint.endswith("attachment/")
+    assert perftest_endpoint.startswith("http")
+    assert "/perftest/" in perftest_endpoint
+    assert not perftest_endpoint.endswith("/")
+    assert not perftest_endpoint.endswith("perftest/")
+    assert not perftest_endpoint.endswith("perftest")
+    assert not perftest_endpoint.endswith("artifact")
+    assert not perftest_endpoint.endswith("artifact/")
 
     post_attach_meta_resp = session.post(
-        f"{result_endpoint}/attachment",
+        f"{perftest_endpoint}/attachment",
         params={},
         headers={
             "Content-Type": content_type,
