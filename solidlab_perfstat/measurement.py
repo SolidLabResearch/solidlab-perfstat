@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from os.path import basename
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 
 import psutil
 import pygal
@@ -10,10 +10,12 @@ from solidlab_perfstat.perftest_attach import upload_artifact, upload_artifact_f
 
 
 class Measurement:
-    def __init__(self):
+    def __init__(self, nic_name=None):
+        self.nic_name = nic_name
         self.running = True
         self.times: List[datetime] = []
         self.stats: List[Dict[str, float]] = []
+        self.prev_stats: Optional[Dict[str, float]] = None
         self.cpu_count = 0
 
     @staticmethod
@@ -26,6 +28,8 @@ class Measurement:
             stat = {}
 
             self.times.append(self.now())
+
+            # CPU
             # noinspection PyProtectedMember
             cpu_combined_times = psutil.cpu_times_percent(
                 percpu=False
@@ -48,6 +52,39 @@ class Measurement:
             for index, cpu_perc in enumerate(cpu_separate_perc):
                 stat[f"cpu_{index}_perc"] = cpu_perc
 
+            # NET
+            net_stats = psutil.net_io_counters(pernic=self.nic_name is not None)
+            stat[f"net_bytes_sent"] = (
+                net_stats[self.nic_name].bytes_sent
+                if self.nic_name
+                else net_stats.bytes_sent
+            )
+            stat[f"net_bytes_recv"] = (
+                net_stats[self.nic_name].bytes_recv
+                if self.nic_name
+                else net_stats.bytes_recv
+            )
+
+            # Disk I/O
+            disk_stats = psutil.disk_io_counters(nowrap=True)
+            stat[f"disk_read_bytes"] = disk_stats.read_bytes
+            stat[f"disk_write_bytes"] = disk_stats.write_bytes
+
+            full_state = dict(stat)
+
+            # some stats keep aggregating, and thus need the previous stats subtracted
+            for stat_name in (
+                "net_bytes_sent",
+                "net_bytes_recv",
+                "disk_read_bytes",
+                "disk_write_bytes",
+            ):
+                if self.prev_stats:
+                    stat[stat_name] = stat[stat_name] - self.prev_stats[stat_name]
+                else:
+                    stat[stat_name] = 0  # no stats after first interval
+
+            self.prev_stats = full_state
             self.stats.append(stat)
 
     def start(self):
