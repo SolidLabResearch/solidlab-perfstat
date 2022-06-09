@@ -140,13 +140,13 @@ class Measurement:
 
     def make_graphs(self) -> List[str]:
         res_files = []
-        dateline = pygal.DateLine(x_label_rotation=25)
-        dateline.x_labels = self.times
         data = []
         for i in range(len(self.stats)):
             t = self.times[i]
             stat = self.stats[i]
             data.append((t, stat["cpu_all_user+system_perc"]))
+        dateline = pygal.DateLine(x_label_rotation=25)
+        dateline.x_labels = self.times
         dateline.add("CPU Usage (%)", data)
         dateline.render_to_file("cpu1.svg")
         res_files.append("cpu1.svg")
@@ -160,6 +160,8 @@ class Measurement:
             data_user.append((t, stat["cpu_all_user_perc"]))
             data_system.append((t, stat["cpu_all_system_perc"]))
             data_other.append((t, stat["cpu_all_other_perc"]))
+        dateline = pygal.DateLine(x_label_rotation=25)
+        dateline.x_labels = self.times
         dateline.add("CPU User (%)", data_user)
         dateline.add("CPU System (%)", data_system)
         dateline.add("CPU Other (%)", data_other)
@@ -174,6 +176,8 @@ class Measurement:
             stat = self.stats[i]
             for cpu_index in range(self.cpu_count):
                 data_cpus[cpu_index].append((t, stat[f"cpu_{cpu_index}_perc"]))
+        dateline = pygal.DateLine(x_label_rotation=25)
+        dateline.x_labels = self.times
         for cpu_index in range(self.cpu_count):
             dateline.add(f"CPU{cpu_index} Usage (%)", data_cpus[cpu_index])
         dateline.render_to_file("cpus.svg")
