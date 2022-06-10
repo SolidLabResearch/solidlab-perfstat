@@ -176,7 +176,61 @@ class Measurement:
         return res
 
     def make_graphs(self) -> List[str]:
-        res_files = []
+        return [
+            self.make_graph_cpu1(),
+            self.make_graph_cpu3(),
+            self.make_graph_cpus(),
+            self.make_graph_net(),
+            self.make_graph_disk(),
+        ]
+
+    def make_graph_net(self) -> str:
+        data_sent = []
+        data_recv = []
+        prev_t = None
+        for i in range(len(self.stats)):
+            t = self.times[i]
+            stat = self.stats[i]
+            if prev_t:
+                seconds_passed = (t - prev_t).total_seconds()
+                data_sent.append(
+                    (t, (stat["net_bytes_sent"] * 8 / (seconds_passed * 1_000_000)))
+                )
+                data_recv.append(
+                    (t, (stat["net_bytes_recv"] * 8 / (seconds_passed * 1_000_000)))
+                )
+            prev_t = t
+        dateline = pygal.DateLine(x_label_rotation=25)
+        dateline.x_labels = self.times
+        dateline.add("Data Sent (Mbit/s)", data_sent)
+        dateline.add("Data Received (Mbit/s)", data_recv)
+        dateline.render_to_file("net.svg")
+        return "net.svg"
+
+    def make_graph_disk(self) -> str:
+        data_read = []
+        data_write = []
+        prev_t = None
+        for i in range(len(self.stats)):
+            t = self.times[i]
+            stat = self.stats[i]
+            if prev_t:
+                seconds_passed = (t - prev_t).total_seconds()
+                data_read.append(
+                    (t, (stat["disk_read_bytes"] / (seconds_passed * 1_048_576)))
+                )
+                data_write.append(
+                    (t, (stat["disk_write_bytes"] / (seconds_passed * 1_048_576)))
+                )
+            prev_t = t
+        dateline = pygal.DateLine(x_label_rotation=25)
+        dateline.x_labels = self.times
+        dateline.add("Disk Read (MB/s)", data_read)
+        dateline.add("Disk Write (MB/s)", data_write)
+        dateline.render_to_file("disk.svg")
+        return "disk.svg"
+
+    def make_graph_cpu1(self) -> str:
         data = []
         for i in range(len(self.stats)):
             t = self.times[i]
@@ -186,8 +240,9 @@ class Measurement:
         dateline.x_labels = self.times
         dateline.add("CPU Usage (%)", data)
         dateline.render_to_file("cpu1.svg")
-        res_files.append("cpu1.svg")
+        return "cpu1.svg"
 
+    def make_graph_cpu3(self) -> str:
         data_user = []
         data_system = []
         data_other = []
@@ -203,8 +258,9 @@ class Measurement:
         dateline.add("CPU System (%)", data_system)
         dateline.add("CPU Other (%)", data_other)
         dateline.render_to_file("cpu3.svg")
-        res_files.append("cpu3.svg")
+        return "cpu3.svg"
 
+    def make_graph_cpus(self) -> str:
         data_cpus: List[List[Tuple[datetime, float]]] = [
             list() for _ in range(self.cpu_count)
         ]
@@ -218,8 +274,7 @@ class Measurement:
         for cpu_index in range(self.cpu_count):
             dateline.add(f"CPU{cpu_index} Usage (%)", data_cpus[cpu_index])
         dateline.render_to_file("cpus.svg")
-        res_files.append("cpus.svg")
-        return res_files
+        return "cpus.svg"
 
     def make_summary_csv(self) -> str:
         keys = list(self.stats[0].keys())

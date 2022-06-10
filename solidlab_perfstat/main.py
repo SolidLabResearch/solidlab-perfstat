@@ -12,9 +12,11 @@ logger.setLevel(logging.DEBUG)
 
 
 def main() -> int:
+    # very minimal CLI support for now.
     show_help = True
+    network_iface = None
     perftest_endpoint = None
-    if len(sys.argv) == 2:
+    if len(sys.argv) in (2, 3):
         perftest_endpoint = sys.argv[1].strip()
         show_help = not perftest_endpoint.startswith("http")
         assert perftest_endpoint.startswith("http")
@@ -24,17 +26,23 @@ def main() -> int:
         assert not perftest_endpoint.endswith("perftest")
         assert not perftest_endpoint.endswith("artifact")
         assert not perftest_endpoint.endswith("artifact/")
+
+        if len(sys.argv) == 3:
+            network_iface = sys.argv[2].strip()
     elif len(sys.argv) == 1:
         perftest_endpoint = None
         show_help = False
     if show_help:
-        print("Usage: interval-system-monitor [<perftest_post_endpoint>]")
+        print(
+            "Usage: interval-system-monitor [<perftest_post_endpoint> [<network_iface>]]"
+        )
         print(
             "          perftest_post_endpoint: the URL of the solidlab-perftest-server perftest endpoint (optional)"
+            "          network_iface: the name of the network interface to monitor (default: all) (optional)"
         )
         return 1
 
-    measurement = Measurement()
+    measurement = Measurement(network_iface)
 
     # noinspection PyUnusedLocal
     def signal_handler(sig, frame):
