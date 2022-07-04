@@ -1,7 +1,10 @@
 import logging
+import os
 import signal
 import sys
 from time import sleep
+
+import click
 
 from solidlab_perfstat.measurement import Measurement
 
@@ -11,14 +14,23 @@ logger.setLevel(logging.DEBUG)
 # logger.setLevel(logging.ERROR)
 
 
-def main() -> int:
-    # very minimal CLI support for now.
-    show_help = True
-    network_iface = None
-    perftest_endpoint = None
-    if len(sys.argv) in (2, 3):
-        perftest_endpoint = sys.argv[1].strip()
-        show_help = not perftest_endpoint.startswith("http")
+@click.command()
+@click.option(
+    "-e",
+    "--endpoint",
+    required=False,
+    help="URL of the solidlab-perftest-server perftest endpoint",
+)
+@click.option(
+    "-i",
+    "--iface",
+    required=False,
+    help="Name of the network interface to monitor (default: all)",
+)
+def main(endpoint, iface) -> int:
+    perftest_endpoint = endpoint
+    network_iface = iface
+    if perftest_endpoint:
         assert perftest_endpoint.startswith("http")
         assert "/perftest/" in perftest_endpoint
         assert not perftest_endpoint.endswith("/")
@@ -27,20 +39,26 @@ def main() -> int:
         assert not perftest_endpoint.endswith("artifact")
         assert not perftest_endpoint.endswith("artifact/")
 
-        if len(sys.argv) == 3:
-            network_iface = sys.argv[2].strip()
-    elif len(sys.argv) == 1:
-        perftest_endpoint = None
-        show_help = False
-    if show_help:
-        print(
-            "Usage: interval-system-monitor [<perftest_post_endpoint> [<network_iface>]]"
-        )
-        print(
-            "          perftest_post_endpoint: the URL of the solidlab-perftest-server perftest endpoint (optional)"
-            "          network_iface: the name of the network interface to monitor (default: all) (optional)"
-        )
-        return 1
+    if "PERFSTAT_NETWORK_IFACE" in os.environ:
+        network_iface = os.environ["PERFSTAT_NETWORK_IFACE"]
+    if "PERFSTAT_PERFTEST_ENDPOINT" in os.environ:
+        perftest_endpoint = os.environ["PERFSTAT_PERFTEST_ENDPOINT"]
+
+    args_left = list(sys.argv[0])
+    args_left.pop(0)  # drop exe name
+
+    if args_left and not perftest_endpoint:
+        arg = args_left.pop(0)
+
+        perftest_endpoint = arg.strip()
+        show_help = not perftest_endpoint.startswith("http")
+        assert perftest_endpoint.startswith("http")
+        assert "/perftest/" in perftest_endpoint
+        assert not perftest_endpoint.endswith("/")
+        assert not perftest_endpoint.endswith("perftest/")
+        assert not perftest_endpoint.endswith("perftest")
+        assert not perftest_endpoint.endswith("artifact")
+        assert not perftest_endpoint.endswith("artifact/")
 
     measurement = Measurement(network_iface)
 
@@ -66,4 +84,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(auto_envvar_prefix="PERFSTAT"))

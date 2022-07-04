@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="solidlab-perfstat",
-    version="0.1.0",
+    version="0.2.0",
     description="SolidLab PerfStat",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -25,7 +25,7 @@ setup(
         "psutil",
         "pygal",
         "requests",
-        # "click",  # might be dep later, if more complex CLI args are required.
+        "click",
     ],
     python_requires=">=3.7",
     entry_points={
