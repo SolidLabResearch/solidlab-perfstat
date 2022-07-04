@@ -5,8 +5,10 @@ from typing import List, Dict, Tuple, Optional
 import psutil
 import pygal
 import requests
-
-from solidlab_perfstat.perftest_attach import upload_artifact, upload_artifact_file
+from solidlab_perftest_common.upload_artifact import (
+    upload_artifact_file,
+    upload_artifact,
+)
 
 
 class Measurement:
@@ -120,7 +122,7 @@ class Measurement:
         for graph_file in graph_files:
             print(f"Wrote: {graph_file}")
 
-    def post_all(self, perftest_endpoint: str):
+    def post_all(self, perftest_endpoint: str, auth_token: Optional[str]):
         if not self.stats:
             print("No measurement yet")
             return
@@ -139,6 +141,7 @@ class Measurement:
                 description="Summary of all measurements",
                 content=summary_csv.encode(),
                 content_type="text/csv",
+                auth_token=auth_token,
             )
             upload_artifact(
                 session=session,
@@ -148,6 +151,7 @@ class Measurement:
                 description="Detailed measurements",
                 content=detail_csv.encode(),
                 content_type="text/csv",
+                auth_token=auth_token,
             )
 
             for graph_file in graph_files:
@@ -158,6 +162,7 @@ class Measurement:
                     sub_type=basename(graph_file),
                     description="Graph " + basename(graph_file),
                     filename=graph_file,
+                    auth_token=auth_token,
                 )
 
     def make_detail_csv(self) -> str:

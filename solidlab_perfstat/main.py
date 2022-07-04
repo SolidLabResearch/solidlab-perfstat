@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 from time import sleep
+from typing import Optional
 
 import click
 
@@ -22,12 +23,20 @@ logger.setLevel(logging.DEBUG)
     help="URL of the solidlab-perftest-server perftest endpoint",
 )
 @click.option(
+    "-t",
+    "--auth-token",
+    required=False,
+    help="Authentication token for talking to solidlab-perftest-server perftest endpoint",
+)
+@click.option(
     "-i",
     "--iface",
     required=False,
     help="Name of the network interface to monitor (default: all)",
 )
-def main(endpoint, iface) -> int:
+def main(
+    endpoint: Optional[str], iface: Optional[str], auth_token: Optional[str]
+) -> int:
     perftest_endpoint = endpoint
     network_iface = iface
     if perftest_endpoint:
@@ -78,7 +87,7 @@ def main(endpoint, iface) -> int:
     if not perftest_endpoint:
         measurement.make_all()
     else:
-        measurement.post_all(perftest_endpoint)
+        measurement.post_all(perftest_endpoint, auth_token)
 
     return 0
 
