@@ -19,57 +19,37 @@ logger.setLevel(logging.DEBUG)
 @click.option(
     "-e",
     "--endpoint",
+    envvar="PERFSTAT_ENDPOINT",
     required=False,
     help="URL of the solidlab-perftest-server perftest endpoint",
 )
 @click.option(
     "-t",
     "--auth-token",
+    envvar="PERFSTAT_AUTH_TOKEN",
     required=False,
     help="Authentication token for talking to solidlab-perftest-server perftest endpoint",
 )
 @click.option(
     "-i",
     "--iface",
+    envvar="PERFSTAT_IFACE",
     required=False,
     help="Name of the network interface to monitor (default: all)",
 )
 def main(
     endpoint: Optional[str], iface: Optional[str], auth_token: Optional[str]
 ) -> int:
-    perftest_endpoint = endpoint
-    network_iface = iface
-    if perftest_endpoint:
-        assert perftest_endpoint.startswith("http")
-        assert "/perftest/" in perftest_endpoint
-        assert not perftest_endpoint.endswith("/")
-        assert not perftest_endpoint.endswith("perftest/")
-        assert not perftest_endpoint.endswith("perftest")
-        assert not perftest_endpoint.endswith("artifact")
-        assert not perftest_endpoint.endswith("artifact/")
+    if endpoint:
+        assert endpoint.startswith("http")
+        assert "/perftest/" in endpoint
+        assert not endpoint.endswith("/")
+        assert not endpoint.endswith("perftest/")
+        assert not endpoint.endswith("perftest")
+        assert not endpoint.endswith("artifact")
+        assert not endpoint.endswith("artifact/")
 
-    if "PERFSTAT_NETWORK_IFACE" in os.environ:
-        network_iface = os.environ["PERFSTAT_NETWORK_IFACE"]
-    if "PERFSTAT_PERFTEST_ENDPOINT" in os.environ:
-        perftest_endpoint = os.environ["PERFSTAT_PERFTEST_ENDPOINT"]
-
-    args_left = list(sys.argv[0])
-    args_left.pop(0)  # drop exe name
-
-    if args_left and not perftest_endpoint:
-        arg = args_left.pop(0)
-
-        perftest_endpoint = arg.strip()
-        show_help = not perftest_endpoint.startswith("http")
-        assert perftest_endpoint.startswith("http")
-        assert "/perftest/" in perftest_endpoint
-        assert not perftest_endpoint.endswith("/")
-        assert not perftest_endpoint.endswith("perftest/")
-        assert not perftest_endpoint.endswith("perftest")
-        assert not perftest_endpoint.endswith("artifact")
-        assert not perftest_endpoint.endswith("artifact/")
-
-    measurement = Measurement(network_iface)
+    measurement = Measurement(iface)
 
     # noinspection PyUnusedLocal
     def signal_handler(sig, frame):
@@ -84,13 +64,15 @@ def main(
         sleep(1.0)
         measurement.add()
 
-    if not perftest_endpoint:
+    if not endpoint:
         measurement.make_all()
     else:
-        measurement.post_all(perftest_endpoint, auth_token)
+        measurement.post_all(endpoint, auth_token)
 
     return 0
 
 
 if __name__ == "__main__":
+    # Note: auto_envvar_prefix didn't seem to work, though it should:
+    #       https://click.palletsprojects.com/en/8.1.x/options/#values-from-environment-variables
     sys.exit(main(auto_envvar_prefix="PERFSTAT"))
