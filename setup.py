@@ -26,7 +26,7 @@ setup(
         "pygal",
         "requests",
         "click",
-        "solidlab-perftest-common >=1.5.0, <2",
+        "solidlab-perftest-common >=2.0.0, <3",
     ],
     python_requires=">=3.7",
     entry_points={
