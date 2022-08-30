@@ -122,7 +122,7 @@ class Measurement:
         for graph_file in graph_files:
             print(f"Wrote: {graph_file}")
 
-    def post_all(self, perftest_endpoint: str, auth_token: Optional[str]):
+    def post_all(self, artifact_endpoint: str, auth_token: Optional[str]):
         if not self.stats:
             print("No measurement yet")
             return
@@ -135,7 +135,7 @@ class Measurement:
         with requests.Session() as session:
             upload_artifact(
                 session=session,
-                perftest_endpoint=perftest_endpoint,
+                artifact_endpoint=artifact_endpoint,
                 attach_type="CSV",
                 sub_type="summary",
                 description="Summary of all measurements",
@@ -145,7 +145,7 @@ class Measurement:
             )
             upload_artifact(
                 session=session,
-                perftest_endpoint=perftest_endpoint,
+                artifact_endpoint=artifact_endpoint,
                 attach_type="CSV",
                 sub_type="detail",
                 description="Detailed measurements",
@@ -157,7 +157,7 @@ class Measurement:
             for graph_file in graph_files:
                 upload_artifact_file(
                     session=session,
-                    perftest_endpoint=perftest_endpoint,
+                    artifact_endpoint=artifact_endpoint,
                     attach_type="GRAPH",
                     sub_type=basename(graph_file),
                     description="Graph " + basename(graph_file),

@@ -6,6 +6,7 @@ from time import sleep
 from typing import Optional
 
 import click
+from solidlab_perftest_common.upload_artifact import validate_artifact_endpoint
 
 from solidlab_perfstat.measurement import Measurement
 
@@ -21,14 +22,14 @@ logger.setLevel(logging.DEBUG)
     "--endpoint",
     envvar="PERFSTAT_ENDPOINT",
     required=False,
-    help="URL of the solidlab-perftest-server perftest endpoint",
+    help="URL of the solidlab-perftest-server artifact endpoint",
 )
 @click.option(
     "-t",
     "--auth-token",
     envvar="PERFSTAT_AUTH_TOKEN",
     required=False,
-    help="Authentication token for talking to solidlab-perftest-server perftest endpoint",
+    help="Authentication token for talking to solidlab-perftest-server artifact endpoint",
 )
 @click.option(
     "-i",
@@ -41,13 +42,10 @@ def main(
     endpoint: Optional[str], iface: Optional[str], auth_token: Optional[str]
 ) -> int:
     if endpoint:
-        assert endpoint.startswith("http")
-        assert "/perftest/" in endpoint
-        assert not endpoint.endswith("/")
-        assert not endpoint.endswith("perftest/")
-        assert not endpoint.endswith("perftest")
-        assert not endpoint.endswith("artifact")
-        assert not endpoint.endswith("artifact/")
+        try:
+            endpoint = validate_artifact_endpoint(endpoint)
+        except ValueError as e:
+            raise click.ClickException(getattr(e, "message", repr(e)))
 
     measurement = Measurement(iface)
 
